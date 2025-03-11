@@ -1,0 +1,47 @@
+public class Publisher
+{
+    public event Action OnEventTriggered;
+
+    public void TriggerEvent()
+    {
+        OnEventTriggered?.Invoke();
+    }
+}
+
+public class Subscriber
+{
+    public static void HandleEvent() => Console.WriteLine("Event handled");
+
+    public static void Main()
+    {
+        Publisher publisher = new();
+        publisher.OnEventTriggered += HandleEvent;
+
+        publisher.TriggerEvent();  // Output: Event handled
+    }
+}
+
+//Program.cs
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+
+var builder = Host.CreateDefaultBuilder(args);
+
+builder.ConfigureServices((context, services) =>
+{
+    services.AddSingleton<Publisher>();
+    services.AddSingleton<Subscriber>();
+});
+
+var app = builder.Build();
+
+var publisher = app.Services.GetRequiredService<Publisher>();
+var subscriber = app.Services.GetRequiredService<Subscriber>();
+
+// Subscribe to the event
+subscriber.Subscribe(publisher);
+
+// Trigger the event
+publisher.TriggerEvent(); // Output: Event handled
+
+await app.RunAsync();
